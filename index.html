@@ -6,137 +6,359 @@
 <title>Calibrating an eyepiece graticule</title>
 <style>
 :root{
-  --bg:#f4f7f8; --card:#ffffff; --ink:#14202b; --muted:#566573; --line:#c9d3da;
-  --accent:#0b6e8a; --accent-bg:#dff1f6; --band:#f2a900; --cell-fill:#bfe6d4; --cell-line:#1f7a55;
+  --bg:#f4f7f8; --card:#ffffff; --field:#fbfdfe; --ink:#14202b; --muted:#566573; --line:#c9d3da;
+  --accent:#0b6e8a; --accent-bg:#dff1f6; --band:#e39a00;
+  --cell-fill:#c9ebdb; --cell-line:#1f7a55; --nuc-fill:#7fc4a3;
+  --pol-fill:#f6e07a; --pol-line:#a97d0c; --pol-pore:#d9a82a;
+  --c-grat:#e39a00; --c-obj:#0b8fb5; --c-mic:#6f7fe0;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#10171d; --card:#18222b; --ink:#e8eef2; --muted:#9db0bd; --line:#33434f;
-    --accent:#5ec4e0; --accent-bg:#17394a; --band:#f2a900; --cell-fill:#1f5a43; --cell-line:#6fd3a6;
+    --bg:#10171d; --card:#18222b; --field:#0c1217; --ink:#e8eef2; --muted:#9db0bd; --line:#33434f;
+    --accent:#5ec4e0; --accent-bg:#17394a; --band:#f2a900;
+    --cell-fill:#1f5a43; --cell-line:#6fd3a6; --nuc-fill:#2f8a68;
+    --pol-fill:#8c7414; --pol-line:#f2cf55; --pol-pore:#b8932a;
   }
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-main{max-width:760px;margin:0 auto;padding:24px 16px 48px}
+main{max-width:1120px;margin:0 auto;padding:24px 16px 48px}
 h1{font-size:24px;font-weight:600;margin:0 0 6px;line-height:1.25}
-.lead{color:var(--muted);margin:0 0 20px;max-width:62ch}
+.lead{color:var(--muted);margin:0 0 20px;max-width:70ch}
+.stage{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
-.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.controls span{color:var(--muted);font-size:15px}
-button{font:inherit;font-weight:500;padding:8px 20px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;min-width:64px}
+.panel h2{font-size:16px;font-weight:600;margin:0 0 8px}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.controls .lab{color:var(--muted);font-size:15px;min-width:96px}
+button{font:inherit;font-weight:500;padding:7px 16px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
 button:hover{border-color:var(--accent)}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 button[aria-pressed="true"]{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
-svg{display:block;width:100%;height:auto}
+svg{display:block;width:100%;height:auto;margin-top:6px}
 svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;fill:var(--ink)}
-.s{font-size:12px;fill:var(--muted)}
-.h{font-size:13px;font-weight:600}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px}
+.s{font-size:13px;fill:var(--muted)}
+.h{font-size:14px;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
 .stat{background:var(--bg);border-radius:8px;padding:12px 14px}
-.stat .k{font-size:13px;color:var(--muted)}
-.stat .v{font-size:24px;font-weight:600}
-h2{font-size:18px;font-weight:600;margin:28px 0 8px}
+.stat .k{font-size:13px;color:var(--muted);line-height:1.4}
+.stat .v{font-size:22px;font-weight:600}
+.view3d{position:relative;height:420px;border-radius:8px;background:var(--bg);overflow:hidden;touch-action:pan-y;cursor:grab}
+.view3d:active{cursor:grabbing}
+.view3d canvas{display:block;width:100%;height:100%}
+.fallback{padding:24px;color:var(--muted);margin:0}
+.lbl{position:absolute;left:0;top:0;pointer-events:none;will-change:transform}
+.dot{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--c);border:2px solid var(--card);transform:translate(-50%,-50%)}
+.pill{position:absolute;top:0;transform:translate(34px,-50%);white-space:nowrap;background:var(--card);border:1.5px solid var(--c);border-radius:8px;padding:2px 10px;font-size:13px;font-weight:600;line-height:1.5}
+.pill::before{content:"";position:absolute;left:-34px;top:50%;width:32px;height:1.5px;background:var(--c)}
+.lbl.left .pill{transform:translate(calc(-100% - 34px),-50%)}
+.lbl.left .pill::before{left:auto;right:-34px}
+.hint{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;color:var(--muted);font-size:13px}
+.hint button{padding:4px 12px;font-size:13px}
+.parts{list-style:none;padding:0;margin:12px 0 0}
+.parts li{display:flex;gap:10px;margin:8px 0;font-size:14px;line-height:1.45}
+.parts i{flex:none;width:12px;height:12px;border-radius:50%;background:var(--c);margin-top:5px}
+h2.sec{font-size:18px;font-weight:600;margin:28px 0 8px}
 .formula{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px;font-size:17px}
-ol,ul{padding-left:22px;margin:8px 0}
-li{margin:4px 0}
-.note{color:var(--muted);font-size:14px;margin-top:20px}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.working{margin-top:8px;color:var(--muted)}
+ul.pts{padding-left:22px;margin:8px 0}
+ul.pts li{margin:4px 0}
+.note{color:var(--muted);font-size:14px;margin-top:18px;max-width:75ch}
 </style>
 </head>
 <body>
 <main>
   <h1>How the objective lens changes eyepiece graticule calibration</h1>
-  <p class="lead">The graticule is fixed inside the eyepiece. The stage micrometer is a real scale. Switch objective lens and watch how many graticule units fit into 100 µm.</p>
+  <p class="lead">The left drawing is the view down the microscope. The graticule (top) is fixed in the eyepiece. The stage micrometer (bottom) is a real scale. Change the objective lens and see how many graticule units fit into the same real distance. The 3D model shows where each part sits.</p>
 
-  <div class="panel">
-    <div class="controls" role="group" aria-label="Objective lens">
-      <span>Objective lens</span>
-      <button id="b4" onclick="setObj(4)" aria-pressed="false">×4</button>
-      <button id="b10" onclick="setObj(10)" aria-pressed="true">×10</button>
-      <button id="b40" onclick="setObj(40)" aria-pressed="false">×40</button>
+  <div class="stage">
+    <div class="panel">
+      <div class="controls" role="group" aria-label="Objective lens">
+        <span class="lab">Objective lens</span>
+        <button id="b4" onclick="setObj(4)" aria-pressed="false">×4</button>
+        <button id="b10" onclick="setObj(10)" aria-pressed="true">×10</button>
+        <button id="b40" onclick="setObj(40)" aria-pressed="false">×40</button>
+      </div>
+      <div class="controls" role="group" aria-label="Specimen">
+        <span class="lab">Specimen</span>
+        <button id="scell" onclick="setSpec('cell')" aria-pressed="true">Animal cell</button>
+        <button id="spollen" onclick="setSpec('pollen')" aria-pressed="false">Pathogen</button>
+      </div>
+
+      <svg viewBox="0 0 680 420" role="img" aria-labelledby="t d">
+        <title id="t">Microscope field of view with eyepiece graticule and stage micrometer</title>
+        <desc id="d">A circular field of view. A fixed 100-unit graticule runs across the top and a stage micrometer scale runs below it. A shaded band marks 100 micrometres. A specimen sits between the two scales.</desc>
+        <defs><clipPath id="fov"><circle cx="340" cy="215" r="188"/></clipPath></defs>
+        <circle cx="340" cy="215" r="190" fill="var(--field)" stroke="var(--ink)" stroke-width="1.5"/>
+        <g clip-path="url(#fov)">
+          <rect id="band" x="180" y="140" width="32" height="140" fill="#f2a900" opacity="0.25"/>
+          <line x1="180" y1="140" x2="180" y2="280" stroke="var(--band)" stroke-width="1.2" stroke-dasharray="3 3"/>
+          <line id="edge" x1="212" y1="140" x2="212" y2="280" stroke="var(--band)" stroke-width="1.2" stroke-dasharray="3 3"/>
+          <line x1="180" y1="140" x2="500" y2="140" stroke="var(--ink)" stroke-width="1.4"/>
+          <g id="grat"></g>
+          <line x1="180" y1="280" x2="500" y2="280" stroke="var(--ink)" stroke-width="1.4"/>
+          <g id="mic"></g>
+          <g id="spec"></g>
+        </g>
+        <text class="s" x="340" y="385" text-anchor="middle">Field of view</text>
+
+        <text class="h" x="146" y="138" text-anchor="end">Eyepiece graticule</text>
+        <text class="s" x="146" y="155" text-anchor="end">fixed, 100 units</text>
+        <text class="h" x="146" y="212" text-anchor="end">Specimen</text>
+        <text class="h" x="146" y="278" text-anchor="end">Stage micrometer</text>
+        <text class="s" x="146" y="295" text-anchor="end">1 division = 10 µm</text>
+        <text class="h" x="536" y="262">Shaded band</text>
+        <text class="s" x="536" y="279">10 divisions</text>
+        <text class="s" x="536" y="296">= 100 µm</text>
+      </svg>
+
+      <div class="stats" aria-live="polite">
+        <div class="stat"><div class="k">Graticule units across 100 µm</div><div class="v" id="m1">10</div></div>
+        <div class="stat"><div class="k">1 graticule unit equals</div><div class="v" id="m2">10 µm</div></div>
+        <div class="stat"><div class="k">Specimen length on graticule</div><div class="v" id="m3">6 units</div></div>
+        <div class="stat"><div class="k">Real length of specimen</div><div class="v" id="m4">60 µm</div></div>
+      </div>
     </div>
 
-    <svg viewBox="0 0 680 262" role="img" aria-labelledby="t d">
-      <title id="t">Eyepiece graticule over a stage micrometer</title>
-      <desc id="d">A fixed 100-unit graticule is shown above a stage micrometer. The number of graticule units that fit into 100 micrometres changes with the objective lens.</desc>
-      <text class="h" x="40" y="22">Eyepiece graticule (fixed: always 100 units across)</text>
-      <rect x="40" y="32" width="600" height="212" rx="4" fill="none" stroke="var(--line)" stroke-dasharray="4 4"/>
-      <rect id="band" x="40" y="54" width="60" height="160" fill="#f2a900" opacity="0.22"/>
-      <line x1="40" y1="54" x2="640" y2="54" stroke="var(--ink)" stroke-width="1.2"/>
-      <g id="grat"></g>
-      <text class="h" x="52" y="112">Specimen cell (real width 50 µm, never changes)</text>
-      <g id="cell"></g>
-      <text class="h" x="52" y="186">Stage micrometer (real scale, µm)</text>
-      <line x1="40" y1="214" x2="640" y2="214" stroke="var(--ink)" stroke-width="1.2"/>
-      <g id="mic"></g>
-      <line x1="40" y1="54" x2="40" y2="214" stroke="var(--band)" stroke-width="1.2" stroke-dasharray="3 3"/>
-      <line id="edge" x1="100" y1="54" x2="100" y2="214" stroke="var(--band)" stroke-width="1.2" stroke-dasharray="3 3"/>
-    </svg>
-
-    <div class="stats" aria-live="polite">
-      <div class="stat"><div class="k">Graticule units in 100 µm</div><div class="v" id="m1">10</div></div>
-      <div class="stat"><div class="k">1 graticule unit equals</div><div class="v" id="m2">10 µm</div></div>
-      <div class="stat"><div class="k">Same cell measures</div><div class="v" id="m3">5 units</div></div>
+    <div class="panel">
+      <h2>Where the parts sit on the microscope</h2>
+      <div class="view3d" id="scope3d" aria-label="3D model of a compound microscope. Drag to rotate.">
+        <div class="lbl" id="lg" style="--c:var(--c-grat)"><i class="dot"></i><span class="pill">Eyepiece graticule</span></div>
+        <div class="lbl left" id="lo" style="--c:var(--c-obj)"><i class="dot"></i><span class="pill" id="lot">Objective lens (×10)</span></div>
+        <div class="lbl" id="lm" style="--c:var(--c-mic)"><i class="dot"></i><span class="pill">Stage micrometer</span></div>
+      </div>
+      <div class="hint"><span>Drag to rotate the model.</span><button type="button" onclick="scopeReset()">Reset view</button></div>
+      <ul class="parts">
+        <li style="--c:var(--c-grat)"><i></i><span>Eyepiece graticule: a ruler etched on a glass disc inside the eyepiece. It is fixed, with 100 units.</span></li>
+        <li style="--c:var(--c-obj)"><i></i><span>Objective lens: on the revolving nosepiece. Turning to a different lens changes the magnification, so the graticule must be calibrated again.</span></li>
+        <li style="--c:var(--c-mic)"><i></i><span>Stage micrometer: a slide with a scale of known length, placed on the stage. It is replaced by the specimen slide when measuring.</span></li>
+      </ul>
     </div>
   </div>
 
-  <h2>Calibration formula</h2>
+  <h2 class="sec">Calibration formula</h2>
   <div class="formula">1 graticule unit (µm) = stage micrometer length (µm) ÷ graticule units it spans</div>
+  <div class="working" id="wk"></div>
 
-  <h2>Key points</h2>
-  <ul>
-    <li>Low power: 100 µm looks small, so many units span it and each unit is a larger real distance.</li>
-    <li>High power: 100 µm looks large, so few units span it and each unit is a smaller real distance.</li>
+  <h2 class="sec">Key points</h2>
+  <ul class="pts">
+    <li>Low power: 100 µm looks small, so many graticule units span it. Each unit is a larger real distance.</li>
+    <li>High power: 100 µm looks large, so fewer graticule units span it. Each unit is a smaller real distance.</li>
+    <li>The specimen never changes size. Only the number of graticule units it covers changes.</li>
     <li>Calibrate again every time you change the objective lens.</li>
-    <li>Real size = number of graticule units counted × calibration for that objective.</li>
+    <li>Real length = graticule units counted × calibration for that objective.</li>
   </ul>
 
-  <p class="note">Example values assume a ×10 eyepiece. Calibrate your own microscope with its own stage micrometer.</p>
+  <p class="note">In this model each micrometer division is 10 µm. In an exam the question tells you the value of each division (for example 0.1 mm), so use the value you are given. The method is identical. In real practice the micrometer slide is swapped for the specimen slide. Both are drawn together here for illustration. Specimen drawings and the 3D model are simplified, and sizes are typical examples.</p>
 </main>
 
 <script>
-var PU=6, X0=40, UM={4:25,10:10,40:2.5};
+var PU=3.2, X0=180, MY=280, GY=140, CX=400, CY=210;
+var UM={4:25,10:10,40:2.5};
+var SP={cell:60,pollen:40};
+var obj=10, spec='cell';
+
 function ln(x1,y1,x2,y2,w){return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="var(--ink)" stroke-width="'+(w||0.8)+'"/>';}
 function tx(x,y,s){return '<text class="s" x="'+x+'" y="'+y+'" text-anchor="middle">'+s+'</text>';}
 function fmt(n){return (Math.round(n*10)/10).toString();}
+
 function drawGrat(){
   var s='';
   for(var u=0;u<=100;u++){
-    var x=X0+u*PU, L=u%10===0?16:(u%5===0?10:6);
-    s+=ln(x,54,x,54+L);
-    if(u%10===0) s+=tx(x,88,u);
+    var x=X0+u*PU;
+    if(u%10===0){
+      s+=ln(x,GY-10,x,GY+22,2.4);
+      s+=tx(x,GY-18,u);
+    } else if(u%5===0){
+      s+=ln(x,GY,x,GY+11);
+    } else {
+      s+=ln(x,GY,x,GY+6);
+    }
   }
   document.getElementById('grat').innerHTML=s;
 }
-function setObj(o){
-  var upu=UM[o], p100=PU*100/upu, span=100*upu, s='', step=p100>=40?1:5;
-  for(var um=0;um<=span;um+=10){
-    var x=X0+um/upu*PU;
-    if(um%100===0){
-      s+=ln(x,214,x,198,1.2);
-      if((um/100)%step===0) s+=tx(x,232,um);
-    } else if(p100/10>=6){
-      s+=ln(x,214,x,206);
+
+function drawMic(){
+  var upu=UM[obj], pdv=PU*10/upu, s='', d, x;
+  var labStep=(pdv*10>=30)?10:50;
+  for(d=0;d<=100;d++){
+    x=X0+d*pdv;
+    if(x>500.01) break;
+    if(d%10===0){
+      s+=ln(x,MY,x,MY+16,1.6);
+      if(d%labStep===0 && x<=496) s+=tx(x,MY+32,d);
+    } else if(d%5===0){
+      s+=ln(x,MY,x,MY+11);
+    } else if(pdv>=3){
+      s+=ln(x,MY,x,MY+7);
     }
   }
   document.getElementById('mic').innerHTML=s;
-  var cw=PU*50/upu, cx=500;
-  var c='<ellipse cx="'+cx+'" cy="138" rx="'+(cw/2)+'" ry="14" fill="var(--cell-fill)" stroke="var(--cell-line)" stroke-width="1.5"/>';
-  c+=ln(cx-cw/2,160,cx+cw/2,160,1.2);
-  c+=tx(cx,176,fmt(50/upu)+' units');
-  document.getElementById('cell').innerHTML=c;
-  document.getElementById('band').setAttribute('width',p100);
+  var bw=PU*100/upu;
+  document.getElementById('band').setAttribute('width',bw);
   var e=document.getElementById('edge');
-  e.setAttribute('x1',X0+p100); e.setAttribute('x2',X0+p100);
+  e.setAttribute('x1',X0+bw); e.setAttribute('x2',X0+bw);
+}
+
+function bracket(x1,x2,y,label){
+  return ln(x1,y,x2,y,1.2)+ln(x1,y-4,x1,y+4,1.2)+ln(x2,y-4,x2,y+4,1.2)+
+    '<text class="h" x="'+((x1+x2)/2)+'" y="'+(y+18)+'" text-anchor="middle">'+label+'</text>';
+}
+
+function drawSpec(){
+  var upu=UM[obj], s=PU/upu, L=SP[spec], g='', n=L/upu;
+  if(spec==='cell'){
+    var rx=30*s, ry=24*s;
+    g+='<ellipse cx="'+CX+'" cy="'+CY+'" rx="'+rx+'" ry="'+ry+'" fill="var(--cell-fill)" stroke="var(--cell-line)" stroke-width="1.6"/>';
+    g+='<circle cx="'+(CX-3*s)+'" cy="'+(CY-1*s)+'" r="'+(8*s)+'" fill="var(--nuc-fill)" stroke="var(--cell-line)" stroke-width="1"/>';
+    g+=bracket(CX-rx,CX+rx,CY+ry+9,fmt(n)+' units');
+  } else {
+    var r=20*s, sp=4*s, k, a;
+    for(k=0;k<20;k++){
+      a=k*Math.PI/10;
+      g+='<line x1="'+(CX+r*Math.cos(a))+'" y1="'+(CY+r*Math.sin(a))+'" x2="'+(CX+(r+sp)*Math.cos(a))+'" y2="'+(CY+(r+sp)*Math.sin(a))+'" stroke="var(--pol-line)" stroke-width="1.3" stroke-linecap="round"/>';
+    }
+    g+='<circle cx="'+CX+'" cy="'+CY+'" r="'+r+'" fill="var(--pol-fill)" stroke="var(--pol-line)" stroke-width="1.6"/>';
+    g+='<circle cx="'+(CX-7*s)+'" cy="'+(CY-6*s)+'" r="'+(3*s)+'" fill="var(--pol-pore)" stroke="var(--pol-line)" stroke-width="0.8"/>';
+    g+='<circle cx="'+(CX+8*s)+'" cy="'+(CY-3*s)+'" r="'+(3*s)+'" fill="var(--pol-pore)" stroke="var(--pol-line)" stroke-width="0.8"/>';
+    g+='<circle cx="'+(CX-1*s)+'" cy="'+(CY+9*s)+'" r="'+(3*s)+'" fill="var(--pol-pore)" stroke="var(--pol-line)" stroke-width="0.8"/>';
+    g+=bracket(CX-r,CX+r,CY+r+sp+10,fmt(n)+' units');
+  }
+  document.getElementById('spec').innerHTML=g;
+}
+
+function update(){
+  var upu=UM[obj], L=SP[spec], n=L/upu;
+  drawMic(); drawSpec();
   document.getElementById('m1').textContent=fmt(100/upu);
   document.getElementById('m2').textContent=fmt(upu)+' µm';
-  document.getElementById('m3').textContent=fmt(50/upu)+' units';
-  [4,10,40].forEach(function(v){
-    document.getElementById('b'+v).setAttribute('aria-pressed', v===o ? 'true':'false');
-  });
+  document.getElementById('m3').textContent=fmt(n)+' units';
+  document.getElementById('m4').textContent=fmt(L)+' µm';
+  document.getElementById('wk').textContent='×'+obj+' objective: 100 µm ÷ '+fmt(100/upu)+' units = '+fmt(upu)+' µm per unit. Specimen: '+fmt(n)+' units × '+fmt(upu)+' µm = '+fmt(L)+' µm.';
+  [4,10,40].forEach(function(v){document.getElementById('b'+v).setAttribute('aria-pressed',v===obj?'true':'false');});
+  ['cell','pollen'].forEach(function(v){document.getElementById('s'+v).setAttribute('aria-pressed',v===spec?'true':'false');});
+  if(window.scopeSet) window.scopeSet(obj);
 }
+function setObj(o){obj=o;update();}
+function setSpec(k){spec=k;update();}
 drawGrat();
-setObj(10);
+update();
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var host=document.getElementById('scope3d');
+  function fail(m){host.innerHTML='<p class="fallback">'+m+'</p>';}
+  if(typeof THREE==='undefined'){fail('The 3D model could not load. Check your internet connection and refresh the page.');return;}
+  var renderer;
+  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}
+  catch(e){fail('Your browser could not start 3D graphics.');return;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  host.insertBefore(renderer.domElement,host.firstChild);
+
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(38,1,0.1,100);
+  camera.position.set(6.2,4.6,10.5);
+  camera.lookAt(0,3.1,0);
+  scene.add(new THREE.AmbientLight(0xffffff,0.75));
+  var key=new THREE.DirectionalLight(0xffffff,0.8); key.position.set(5,8,6); scene.add(key);
+  var fill=new THREE.DirectionalLight(0xffffff,0.3); fill.position.set(-5,3,-4); scene.add(fill);
+
+  var root=new THREE.Group(); scene.add(root);
+
+  function mat(c,o){var p={color:c,roughness:0.55,metalness:0.15};if(o){for(var k in o)p[k]=o[k];}return new THREE.MeshStandardMaterial(p);}
+  function box(w,h,d,x,y,z,m,par){var o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);(par||root).add(o);return o;}
+  function cyl(rt,rb,h,x,y,z,m,par){var o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,36),m);o.position.set(x,y,z);(par||root).add(o);return o;}
+
+  var body=mat(0x5b6b77), dark=mat(0x23292e), light=mat(0xc9d2d8), steel=mat(0x8d99a2,{metalness:0.5,roughness:0.35});
+
+  box(3.0,0.4,2.8,0,0.2,-0.1,body);
+  box(0.6,4.5,0.6,0,2.65,-0.9,body);
+  box(0.9,1.0,1.7,0,4.7,-0.35,body);
+  box(2.6,0.12,2.2,0,1.75,0.2,light);
+  box(0.5,0.3,1.2,0,1.6,-0.85,body);
+  cyl(0.35,0.35,0.8,0,0.8,0,dark);
+  var kn;
+  kn=cyl(0.35,0.35,0.25,0.5,1.2,-0.9,steel); kn.rotation.z=Math.PI/2;
+  kn=cyl(0.35,0.35,0.25,-0.5,1.2,-0.9,steel); kn.rotation.z=Math.PI/2;
+  cyl(0.22,0.22,0.03,0,1.82,0,dark);
+
+  var eye=cyl(0.28,0.28,1.3,0,5.85,0,mat(0x2a3138,{transparent:true,opacity:0.38,depthWrite:false}));
+  cyl(0.33,0.33,0.12,0,6.5,0,dark);
+  var gMat=mat(0xe39a00,{emissive:0x6b4200,transparent:true,opacity:0.95});
+  cyl(0.24,0.24,0.03,0,5.55,0,gMat);
+  box(0.42,0.032,0.02,0,5.56,0,dark);
+  var gi;
+  for(gi=-4;gi<=4;gi++){box(0.008,0.034,0.07,gi*0.045,5.56,0,dark);}
+
+  var slide=box(1.4,0.04,0.5,0,1.83,0,mat(0x8c9bff,{transparent:true,opacity:0.75}));
+  var mi;
+  box(1.0,0.006,0.01,0,1.857,0,dark);
+  for(mi=0;mi<=10;mi++){box(0.008,0.006,mi%5===0?0.16:0.09,-0.5+mi*0.1,1.857,0,dark);}
+
+  var nose=new THREE.Group(); nose.position.set(0,3.925,-0.5); root.add(nose);
+  cyl(0.7,0.7,0.25,0,0.125,0,body,nose);
+  var specs=[{len:1.0,r:0.15},{len:1.3,r:0.18},{len:1.7,r:0.22}];
+  var theta=[0,2*Math.PI/3,4*Math.PI/3], objs=[], objMats=[], R=0.48, i, og, om;
+  for(i=0;i<3;i++){
+    om=mat(0x3a444c); objMats.push(om);
+    og=new THREE.Mesh(new THREE.CylinderGeometry(specs[i].r,specs[i].r*0.6,specs[i].len,36),om);
+    og.position.set(R*Math.sin(theta[i]),-specs[i].len/2,R*Math.cos(theta[i]));
+    nose.add(og); objs.push(og);
+    var ring=cyl(specs[i].r*1.12,specs[i].r*1.12,0.08,R*Math.sin(theta[i]),-0.1,R*Math.cos(theta[i]),steel,nose);
+  }
+
+  var sel=1, noseTarget=0;
+  var map={4:0,10:1,40:2};
+  window.scopeSet=function(o){
+    sel=map[o];
+    noseTarget=-theta[sel];
+    for(var k=0;k<3;k++){objMats[k].color.setHex(k===sel?0x0b8fb5:0x3a444c);objMats[k].emissive.setHex(k===sel?0x04384a:0x000000);}
+    document.getElementById('lot').textContent='Objective lens (\u00d7'+o+')';
+  };
+  window.scopeSet(obj);
+
+  var yaw=0.6, auto=!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var drag=false, lastX=0;
+  var cv=renderer.domElement;
+  cv.addEventListener('pointerdown',function(e){drag=true;auto=false;lastX=e.clientX;try{cv.setPointerCapture(e.pointerId);}catch(x){}});
+  cv.addEventListener('pointermove',function(e){if(!drag)return;yaw+=(e.clientX-lastX)*0.01;lastX=e.clientX;});
+  cv.addEventListener('pointerup',function(){drag=false;});
+  cv.addEventListener('pointercancel',function(){drag=false;});
+  window.scopeReset=function(){yaw=0.6;auto=false;};
+
+  function size(){
+    var w=host.clientWidth||300, h=host.clientHeight||300;
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h; camera.updateProjectionMatrix();
+  }
+  if(window.ResizeObserver){new ResizeObserver(size).observe(host);} else {window.addEventListener('resize',size);}
+  size();
+
+  var lg=document.getElementById('lg'), lo=document.getElementById('lo'), lm=document.getElementById('lm');
+  var v=new THREE.Vector3();
+  function place(el,world){
+    v.copy(world).project(camera);
+    var w=host.clientWidth, h=host.clientHeight;
+    el.style.transform='translate('+((v.x*0.5+0.5)*w).toFixed(1)+'px,'+((-v.y*0.5+0.5)*h).toFixed(1)+'px)';
+  }
+  var pg=new THREE.Vector3(), po=new THREE.Vector3(), pm=new THREE.Vector3();
+
+  function frame(){
+    requestAnimationFrame(frame);
+    if(auto&&!drag) yaw+=0.004;
+    root.rotation.y=yaw;
+    var d=noseTarget-nose.rotation.y; d=Math.atan2(Math.sin(d),Math.cos(d));
+    nose.rotation.y+=d*0.12;
+    root.updateMatrixWorld(true);
+    pg.set(0,5.55,0); root.localToWorld(pg); place(lg,pg);
+    objs[sel].getWorldPosition(po); place(lo,po);
+    pm.set(0,1.85,0); root.localToWorld(pm); place(lm,pm);
+    renderer.render(scene,camera);
+  }
+  frame();
+})();
 </script>
 </body>
 </html>
