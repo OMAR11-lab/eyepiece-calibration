@@ -11,6 +11,7 @@
   --cell-fill:#c9ebdb; --cell-line:#1f7a55; --nuc-fill:#7fc4a3;
   --pol-fill:#f6e07a; --pol-line:#a97d0c; --pol-pore:#d9a82a;
   --c-grat:#e39a00; --c-obj:#0b8fb5; --c-mic:#6f7fe0;
+  --ok:#0f7b5f; --em-only:#b86b00; --no:#c0392b;
 }
 @media (prefers-color-scheme: dark){
   :root{
@@ -18,6 +19,7 @@
     --accent:#5ec4e0; --accent-bg:#17394a; --band:#f2a900;
     --cell-fill:#1f5a43; --cell-line:#6fd3a6; --nuc-fill:#2f8a68;
     --pol-fill:#8c7414; --pol-line:#f2cf55; --pol-pore:#b8932a;
+    --ok:#3ec9a0; --em-only:#f2a900; --no:#ff8a7a;
   }
 }
 *{box-sizing:border-box}
@@ -64,11 +66,48 @@ h2.sec{font-size:18px;font-weight:600;margin:28px 0 8px}
 ul.pts{padding-left:22px;margin:8px 0}
 ul.pts li{margin:4px 0}
 .note{color:var(--muted);font-size:14px;margin-top:18px;max-width:75ch}
+[hidden]{display:none !important}
+h1{font-size:26px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 20px;flex-wrap:wrap}
+.tabs button{border:none;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;padding:10px 18px;font-size:16px;color:var(--muted);background:transparent}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-bg)}
+.tt{font-size:20px;font-weight:600;margin:0 0 6px;line-height:1.3}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:16px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+.ph{font-size:17px;font-weight:600;margin:0}
+.res{color:var(--muted);font-size:14px;margin-bottom:4px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:6px;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.cap{font-weight:600;font-size:14px;margin:4px 0 2px}
+.stat2{font-size:14px;color:var(--muted);margin:0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-size:13px;color:var(--muted);font-weight:600}
+
+.yes{color:var(--ok);font-weight:600}
+.no{color:var(--no);font-weight:600}
+.explain{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:var(--bg)}
+.explain strong{color:var(--accent)}
+.check{margin-top:16px}
+.check p{margin:6px 0 10px}
+.check .choices{display:flex;gap:8px;flex-wrap:wrap}
+.check button{min-width:112px}
+.check button.correct{border-color:var(--ok);color:var(--ok);background:var(--bg)}
+.check button.incorrect{border-color:var(--no);color:var(--no);background:var(--bg)}
+.feedback{min-height:28px;margin-top:10px;font-weight:600}
+
 </style>
 </head>
 <body>
 <main>
-  <h1>How the objective lens changes eyepiece graticule calibration</h1>
+  <h1>Microscopy: measuring and resolution</h1>
+  <div class="tabs" role="tablist" aria-label="Pages">
+    <button type="button" role="tab" id="tabbtn1" aria-selected="true" aria-controls="tab1" onclick="showTab(1)">Graticule calibration</button>
+    <button type="button" role="tab" id="tabbtn2" aria-selected="false" aria-controls="tab2" onclick="showTab(2)">LM vs EM resolution</button>
+  </div>
+
+  <section id="tab1" role="tabpanel" aria-labelledby="tabbtn1">
+  <h2 class="tt">How the objective lens changes eyepiece graticule calibration</h2>
   <p class="lead">The left drawing is the view down the microscope. The graticule (top) is fixed in the eyepiece. The stage micrometer (bottom) is a real scale. Change the objective lens and see how many graticule units fit into the same real distance. The 3D model shows where each part sits.</p>
 
   <div class="stage">
@@ -150,6 +189,92 @@ ul.pts li{margin:4px 0}
   </ul>
 
   <p class="note">In this model each micrometer division is 10 µm. In an exam the question tells you the value of each division (for example 0.1 mm), so use the value you are given. The method is identical. In real practice the micrometer slide is swapped for the specimen slide. Both are drawn together here for illustration. Specimen drawings and the 3D model are simplified, and sizes are typical examples.</p>
+  </section>
+
+  <section id="tab2" role="tabpanel" aria-labelledby="tabbtn2" hidden>
+    <h2 class="tt">Light microscope vs electron microscope: resolution</h2>
+    <p class="lead"><b>Resolution</b> is the smallest distance between two points that can still be seen as separate. Anything smaller than this cannot be seen, however much the image is enlarged. The light microscope (LM) resolves 200 nm. The electron microscope (EM) resolves 0.5 nm.</p>
+
+    <div class="panel">
+      <div class="controls" role="group" aria-label="Structure">
+        <span class="lab">Structure</span>
+        <button type="button" id="r_virus" onclick="setRes('virus')" aria-pressed="true">Virus</button>
+        <button type="button" id="r_bac" onclick="setRes('bac')" aria-pressed="false">Bacterium</button>
+        <button type="button" id="r_wbc" onclick="setRes('wbc')" aria-pressed="false">White blood cell</button>
+        <button type="button" id="r_mito" onclick="setRes('mito')" aria-pressed="false">Mitochondrion (cristae)</button>
+        <button type="button" id="r_rer" onclick="setRes('rer')" aria-pressed="false">Rough ER</button>
+      </div>
+      <h3 class="ph">Size of each feature on a log scale</h3>
+      <svg id="rchart" viewBox="0 0 680 170" role="img" aria-label="Log scale chart comparing feature sizes with the light microscope and electron microscope resolution limits"></svg>
+      <div class="legend">
+        <span><i style="background:var(--ok)"></i>At least 200 nm: resolvable with LM and EM</span>
+        <span><i style="background:var(--em-only)"></i>0.5 nm to less than 200 nm: EM only</span>
+        <span>1 µm = 1000 nm</span>
+      </div>
+      <div class="explain">
+        <strong>How to read this:</strong> compare the size of the particular feature (not just the whole cell)
+        with the resolution limit. A bacterium is large enough to see with an LM, but its much smaller
+        ribosomes are not. A mitochondrion can be seen with an LM, but its cristae cannot be resolved.
+      </div>
+    </div>
+
+    <div class="two">
+      <div class="panel">
+        <h3 class="ph">Light microscope (LM)</h3>
+        <div class="res">Resolution = 200 nm</div>
+        <svg viewBox="0 0 340 372" role="img" aria-label="Light microscope view of the selected structure">
+          <defs><clipPath id="lmclip"><circle cx="170" cy="165" r="157"/></clipPath></defs>
+          <circle cx="170" cy="165" r="160" fill="#f6f1f8" stroke="var(--ink)" stroke-width="1.5"/>
+          <g clip-path="url(#lmclip)" id="lmdraw"></g>
+          <g id="lmbar"></g>
+        </svg>
+        <p class="cap" id="lmcap"></p>
+        <p class="stat2" id="lmstat"></p>
+      </div>
+      <div class="panel">
+        <h3 class="ph">Electron microscope (EM)</h3>
+        <div class="res">Resolution = 0.5 nm</div>
+        <svg viewBox="0 0 340 372" role="img" aria-label="Electron microscope view of the selected structure">
+          <defs><clipPath id="emclip"><circle cx="170" cy="165" r="157"/></clipPath></defs>
+          <circle cx="170" cy="165" r="160" fill="#cdd1d4" stroke="var(--ink)" stroke-width="1.5"/>
+          <g clip-path="url(#emclip)" id="emdraw"></g>
+          <g id="embar"></g>
+        </svg>
+        <p class="cap" id="emcap"></p>
+        <p class="stat2" id="emstat"></p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h3 class="ph" id="ttitle">Can each feature be seen?</h3>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Feature</th><th>Typical size</th><th>Light microscope</th><th>Electron microscope</th></tr></thead>
+          <tbody id="rtable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel check">
+      <h3 class="ph">Quick check</h3>
+      <p><strong>A feature is 100 nm across. Can a light microscope resolve it?</strong></p>
+      <div class="choices" role="group" aria-label="Answer the resolution question">
+        <button type="button" onclick="answerResolution(false, this)">Yes</button>
+        <button type="button" onclick="answerResolution(true, this)">No</button>
+      </div>
+      <div class="feedback" id="resolutionFeedback" aria-live="polite"></div>
+    </div>
+
+    <h2 class="sec">Key points</h2>
+    <ul class="pts">
+      <li>Resolution is not the same as magnification. Enlarging an LM image further makes it bigger and blurrier but shows no new detail.</li>
+      <li>The LM limit is about 200 nm because light has a long wavelength. Electrons have a much shorter wavelength, so the EM can resolve about 0.5 nm.</li>
+      <li>Many viruses (for example, a 100 nm virus), ribosomes, cell membranes and cristae details are smaller than 200 nm, so they cannot be resolved with a conventional light microscope.</li>
+      <li>Cells, nuclei and mitochondria (as tiny rods) are larger than 200 nm, so they can be seen with a light microscope.</li>
+      <li>LM images are in colour (after staining) and can show living specimens. EM images are black and white and the specimen is dead and in a vacuum.</li>
+    </ul>
+    <p class="note">Sizes are typical approximate examples; viruses vary widely in size. Cristae are folds of the inner mitochondrial membrane, and the value shown is an approximate feature dimension, not the length of a crista. The drawings are simplified schematics, not actual micrographs. The EM views are zoomed in much more than the LM views, so compare the scale bars. LM drawings imitate stained slides, and EM drawings are shown in grey like real electron micrographs.</p>
+  </section>
 </main>
 
 <script>
@@ -245,6 +370,241 @@ drawGrat();
 update();
 </script>
 
+<script>
+var LMRES=200, EMRES=0.5, rkey='virus';
+var STR={
+ virus:{label:'Virus',
+  feats:[['Virus particle (diameter; example)',100],['Surface spikes (length; example)',10]],
+  lm:{field:2000,bar:500,lab:'500 nm',cap:'Virus particles are present in this field'},
+  em:{field:250,bar:50,lab:'50 nm',cap:'One virus particle, zoomed in'},
+  lmnote:'The field looks empty.',
+  emnote:'The envelope, surface spikes and core can all be seen.'},
+ bac:{label:'Bacterium',
+  feats:[['Whole cell (length)',2000],['Cell wall (thickness)',30],['Ribosomes',20],['Flagellum (thickness)',20]],
+  lm:{field:6000,bar:2000,lab:'2 µm',cap:'Stained bacteria'},
+  em:{field:2500,bar:500,lab:'500 nm',cap:'One bacterium, zoomed in'},
+  lmnote:'Each bacterium is just a stained rod with no internal detail.',
+  emnote:'The cell wall, DNA, ribosomes and flagellum can be seen.'},
+ wbc:{label:'White blood cell',
+  feats:[['Whole cell (diameter)',12000],['Nucleus (diameter)',7000],['Nuclear pores',100],['Ribosomes',25]],
+  lm:{field:20000,bar:5000,lab:'5 µm',cap:'Stained white blood cell (lymphocyte)'},
+  em:{field:3000,bar:500,lab:'500 nm',cap:'Zoomed in: edge of the nucleus and the cytoplasm next to it'},
+  lmnote:'The cell and its nucleus are clear, but nothing finer.',
+  emnote:'The nuclear envelope with its pores, the chromatin, rough ER and ribosomes can be seen.'},
+ mito:{label:'Mitochondrion (cristae)',
+  feats:[['Mitochondrion (length)',1500],['Cristae detail (approx. width)',20],['Membrane thickness',7]],
+  lm:{field:6000,bar:2000,lab:'2 µm',cap:'Stained mitochondria inside a cell'},
+  em:{field:2000,bar:500,lab:'500 nm',cap:'One mitochondrion, zoomed in'},
+  lmnote:'Mitochondria look like tiny rods with no cristae.',
+  emnote:'The double membrane and the folded inner membrane (cristae) can be seen.'},
+ rer:{label:'Rough ER',
+  feats:[['Cisterna (width)',30],['Ribosomes',25],['Membrane thickness',7]],
+  lm:{field:12000,bar:5000,lab:'5 µm',cap:'Cell packed with rough ER'},
+  em:{field:1000,bar:200,lab:'200 nm',cap:'Zoomed in: stacked cisternae of rough ER'},
+  lmnote:'The cytoplasm just looks evenly stained. The rough ER cannot be seen.',
+  emnote:'The flattened cisternae and the ribosomes on their surface can be seen.'}
+};
+var ORDER=['virus','bac','wbc','mito','rer'];
+
+function showTab(n){
+  [1,2].forEach(function(i){
+    document.getElementById('tab'+i).hidden=(i!==n);
+    document.getElementById('tabbtn'+i).setAttribute('aria-selected',i===n?'true':'false');
+  });
+}
+function rng(seed){var a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;var t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};}
+function fmtNm(nm){return nm>=1000?(Math.round(nm/100)/10)+' µm':nm+' nm';}
+function T(x,y,t,cls,col){return '<text class="'+cls+'" x="'+x+'" y="'+y+'" text-anchor="middle" style="fill:'+col+'">'+t+'</text>';}
+function f1(n){return n.toFixed(1);}
+
+/* ---------- log-scale chart ---------- */
+function lx(nm){return 40+(Math.log(nm)/Math.LN10+1)*100;}
+function drawChart(k){
+  var f=STR[k].feats, s='', x5=lx(EMRES), x2=lx(LMRES);
+  s+='<rect x="'+x5+'" y="30" width="'+(x2-x5)+'" height="100" fill="var(--em-only)" opacity="0.14"/>';
+  s+='<rect x="'+x2+'" y="30" width="'+(640-x2)+'" height="100" fill="var(--ok)" opacity="0.14"/>';
+  s+=ln(40,130,640,130,1.4);
+  [[0.1,'0.1 nm'],[1,'1 nm'],[10,'10 nm'],[100,'100 nm'],[1000,'1 µm'],[10000,'10 µm'],[100000,'100 µm']].forEach(function(t){
+    var x=lx(t[0]); s+=ln(x,130,x,137)+tx(x,154,t[1]);
+  });
+  s+='<line x1="'+x5+'" y1="24" x2="'+x5+'" y2="130" stroke="var(--em-only)" stroke-width="1.8" stroke-dasharray="4 3"/>';
+  s+='<text class="h" x="'+(x5+5)+'" y="19" style="fill:var(--em-only)">EM limit: 0.5 nm</text>';
+  s+='<line x1="'+x2+'" y1="24" x2="'+x2+'" y2="130" stroke="var(--ok)" stroke-width="1.8" stroke-dasharray="4 3"/>';
+  s+='<text class="h" x="'+(x2+5)+'" y="19" style="fill:var(--ok)">LM limit: 200 nm</text>';
+  var groups={};
+  f.forEach(function(a){(groups[a[1]]=groups[a[1]]||[]).push(a[0].replace(/ \(.*\)/,''));});
+  Object.keys(groups).map(Number).sort(function(a,b){return a-b;}).forEach(function(nm,i){
+    var x=lx(nm), ty=62+(i%3)*20, col=nm>=LMRES?'var(--ok)':'var(--em-only)';
+    var anc=x<100?'start':(x>580?'end':'middle');
+    s+='<line x1="'+x+'" y1="'+(ty+4)+'" x2="'+x+'" y2="124" stroke="var(--muted)" stroke-width="0.8"/>';
+    s+='<circle cx="'+x+'" cy="130" r="6" fill="'+col+'" stroke="var(--card)" stroke-width="1.5"/>';
+    s+='<text class="h" x="'+x+'" y="'+ty+'" text-anchor="'+anc+'">'+groups[nm].join(' / ')+'</text>';
+  });
+  return s;
+}
+
+/* ---------- scale bar ---------- */
+function bar(len,lab){
+  var x1=170-len/2, x2=170+len/2;
+  return ln(x1,346,x2,346,2)+ln(x1,341,x1,351,2)+ln(x2,341,x2,351,2)+'<text class="h" x="170" y="368" text-anchor="middle">'+lab+'</text>';
+}
+
+/* ---------- light microscope drawings (stained) ---------- */
+function rodS(x,y,a,len,wid,fill,stroke){
+  return '<rect x="'+f1(-len/2)+'" y="'+f1(-wid/2)+'" width="'+f1(len)+'" height="'+f1(wid)+'" rx="'+f1(wid/2)+'" transform="translate('+x+' '+y+') rotate('+a+')" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1"/>';
+}
+function lmSVG(k){
+  var d=STR[k].lm, S=300/d.field, g='', L, W;
+  if(k==='virus'){
+    g+=T(170,160,'Nothing to see','h','#3a2f45')+T(170,180,'(100 nm is smaller than 200 nm)','s','#5b4d6a');
+  } else if(k==='bac'){
+    L=2000*S; W=800*S;
+    g+=rodS(125,120,-18,L,W,'#7a4aa3','#4d2a74')+rodS(215,185,32,L,W,'#7a4aa3','#4d2a74')+rodS(118,218,8,L,W,'#8556ae','#4d2a74');
+  } else if(k==='wbc'){
+    g+='<circle cx="170" cy="165" r="90" fill="#ebbdd6" stroke="#c27ba5" stroke-width="1.5"/>';
+    g+='<circle cx="164" cy="170" r="52" fill="#6c3f99" stroke="#43246a" stroke-width="1.5"/>';
+  } else if(k==='mito'){
+    L=1500*S; W=500*S;
+    g+='<circle cx="170" cy="165" r="135" fill="#efe6f4" stroke="#c9b6d8" stroke-width="1.5"/>';
+    g+=rodS(128,125,20,L,W,'#2a8a8f','#1b5e62')+rodS(215,130,-35,L,W,'#2a8a8f','#1b5e62')+rodS(120,198,-15,L,W,'#2a8a8f','#1b5e62')+rodS(218,208,50,L,W,'#2a8a8f','#1b5e62')+rodS(172,168,85,L,W,'#2a8a8f','#1b5e62');
+  } else {
+    g+='<circle cx="170" cy="165" r="125" fill="#a77fc7" stroke="#6e4a95" stroke-width="1.5"/>';
+    g+='<circle cx="205" cy="150" r="55" fill="#4b2a78" stroke="#2f1a4f" stroke-width="1.5"/>';
+  }
+  return g;
+}
+
+/* ---------- electron microscope drawings (grey) ---------- */
+function emVirus(){
+  var S=300/250, R=50*S, cx=170, cy=165, g='', k, a;
+  for(k=0;k<18;k++){
+    a=k*Math.PI/9+0.2;
+    var x1=cx+R*Math.cos(a), y1=cy+R*Math.sin(a), x2=cx+(R+10*S)*Math.cos(a), y2=cy+(R+10*S)*Math.sin(a);
+    g+='<line x1="'+f1(x1)+'" y1="'+f1(y1)+'" x2="'+f1(x2)+'" y2="'+f1(y2)+'" stroke="#1b1f22" stroke-width="2"/>';
+    g+='<circle cx="'+f1(x2)+'" cy="'+f1(y2)+'" r="3.2" fill="#1b1f22"/>';
+  }
+  g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="#9ba1a6" stroke="#1b1f22" stroke-width="5"/>';
+  g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(R-9)+'" fill="none" stroke="#5b6369" stroke-width="2"/>';
+  g+='<path d="M'+(cx-20)+' '+(cy-26)+' L'+(cx+20)+' '+(cy-26)+' L'+(cx+8)+' '+(cy+30)+' L'+(cx-8)+' '+(cy+30)+' Z" fill="#3b4146" stroke="#1b1f22" stroke-width="1.5"/>';
+  g+='<path d="M'+(cx-12)+' '+(cy-16)+' q8 -8 12 0 t12 0 M'+(cx-10)+' '+(cy-2)+' q8 -8 10 0 t10 0 M'+(cx-7)+' '+(cy+12)+' q6 -7 8 0 t8 0" fill="none" stroke="#d8dcde" stroke-width="1.8"/>';
+  return g;
+}
+function inEll(x,y,cx,cy,rx,ry){var a=(x-cx)/rx,b=(y-cy)/ry;return a*a+b*b<=1;}
+function emBac(){
+  var g='', r=rng(5), i, x, y;
+  g+='<rect x="40" y="102" width="240" height="96" rx="48" fill="#b5bbc0" stroke="#1b1f22" stroke-width="3"/>';
+  g+='<rect x="46" y="108" width="228" height="84" rx="42" fill="#aab0b5" stroke="#4a5258" stroke-width="1.2"/>';
+  g+='<ellipse cx="160" cy="150" rx="46" ry="22" fill="#8e969b" opacity="0.8"/>';
+  g+='<g fill="none" stroke="#3a4045" stroke-width="1"><ellipse cx="160" cy="150" rx="42" ry="18" transform="rotate(20 160 150)"/><ellipse cx="160" cy="150" rx="40" ry="14" transform="rotate(-25 160 150)"/><ellipse cx="160" cy="150" rx="34" ry="20" transform="rotate(70 160 150)"/></g>';
+  for(i=0;i<90;i++){
+    x=56+r()*208; y=112+r()*76;
+    if(inEll(x,y,160,150,106,40) && !inEll(x,y,160,150,50,26)){g+='<circle cx="'+f1(x)+'" cy="'+f1(y)+'" r="1.3" fill="#2a2f33"/>';}
+  }
+  g+='<path d="M280 150 C310 138 300 190 335 195" fill="none" stroke="#1b1f22" stroke-width="2.4" stroke-linecap="round"/>';
+  return g;
+}
+function emWBC(){
+  var g='', r=rng(7), cxn=-252, Ro=352, Ri=348, k, a, b, i;
+  function xa(R,y){var d=y-165;return cxn+Math.sqrt(R*R-d*d);}
+  function seg(R,y1,y2){return '<path d="M'+f1(xa(R,y1))+' '+y1+' A'+R+' '+R+' 0 0 1 '+f1(xa(R,y2))+' '+y2+'" fill="none" stroke="#1b1f22" stroke-width="1.6"/>';}
+  g+='<circle cx="'+cxn+'" cy="165" r="'+Ri+'" fill="#b2b8bc"/>';
+  for(k=0;k<14;k++){
+    var yy=20+k*23+r()*10, xx=xa(Ri,yy)-8-r()*16;
+    g+='<ellipse cx="'+f1(xx)+'" cy="'+f1(yy)+'" rx="'+f1(7+r()*8)+'" ry="'+f1(4+r()*4)+'" fill="#6a7176" opacity="0.8"/>';
+  }
+  var pores=[40,82,125,168,212,255,298], start=0;
+  pores.forEach(function(p){
+    g+=seg(Ro,start,p-5)+seg(Ri,start,p-5);
+    g+='<circle cx="'+f1(xa(350,p))+'" cy="'+p+'" r="1.4" fill="#1b1f22"/>';
+    start=p+5;
+  });
+  g+=seg(Ro,start,340)+seg(Ri,start,340);
+  [165,228,291].forEach(function(xc,j){
+    var L=[], R2=[], y, up='', lo='';
+    for(y=-6;y<=346;y+=6){var x=xc+7*Math.sin(y*0.045+j*1.3);L.push([x,y]);R2.push([x+4,y]);}
+    var poly='M'+L.map(function(p){return f1(p[0])+' '+p[1];}).join(' L')+' L'+R2.slice().reverse().map(function(p){return f1(p[0])+' '+p[1];}).join(' L')+' Z';
+    g+='<path d="'+poly+'" fill="#e3e6e8"/>';
+    g+='<path d="M'+L.map(function(p){return f1(p[0])+' '+p[1];}).join(' L')+'" fill="none" stroke="#1b1f22" stroke-width="1.2"/>';
+    g+='<path d="M'+R2.map(function(p){return f1(p[0])+' '+p[1];}).join(' L')+'" fill="none" stroke="#1b1f22" stroke-width="1.2"/>';
+    for(i=0;i<L.length;i+=2){
+      if(r()>0.15) g+='<circle cx="'+f1(L[i][0]-2.8)+'" cy="'+f1(L[i][1]+r()*3)+'" r="1.4" fill="#20262a"/>';
+      if(r()>0.15) g+='<circle cx="'+f1(R2[i][0]+2.8)+'" cy="'+f1(R2[i][1]+r()*3)+'" r="1.4" fill="#20262a"/>';
+    }
+  });
+  return g;
+}
+function emMito(){
+  var cx=170, cy=165, rx=112, ry=45, rxi=108, ryi=41, g='', r=rng(3), i;
+  g+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="#a9b0b5" stroke="#1b1f22" stroke-width="2.2"/>';
+  g+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rxi+'" ry="'+ryi+'" fill="#9aa2a8" stroke="#1b1f22" stroke-width="1.2"/>';
+  for(i=0;i<13;i++){
+    var x=-96+i*16, yb=ryi*Math.sqrt(1-(x/rxi)*(x/rxi)), top=(i%2===0), L=yb*1.25;
+    var y1=top?cy-yb+1:cy+yb-1, y2=top?y1+L:y1-L, xx=cx+x;
+    g+='<line x1="'+xx+'" y1="'+f1(y1)+'" x2="'+xx+'" y2="'+f1(y2)+'" stroke="#1b1f22" stroke-width="3.8" stroke-linecap="round"/>';
+    g+='<line x1="'+xx+'" y1="'+f1(y1)+'" x2="'+xx+'" y2="'+f1(y2)+'" stroke="#c5cacd" stroke-width="1.4" stroke-linecap="round"/>';
+  }
+  for(i=0;i<22;i++){
+    var px=cx-100+r()*200, py=cy-38+r()*76;
+    if(inEll(px,py,cx,cy,rxi-6,ryi-6)) g+='<circle cx="'+f1(px)+'" cy="'+f1(py)+'" r="1.5" fill="#3a4045"/>';
+  }
+  return g;
+}
+function emRER(){
+  var g='', r=rng(11);
+  [40,110,180,250,315].forEach(function(y0,j){
+    var U=[], D=[], x, i;
+    for(x=-6;x<=346;x+=6){var y=y0+9*Math.sin(x*0.028+j*1.7)+(x-170)*0.02*(j%2?1:-1);U.push([x,y]);D.push([x,y+9]);}
+    var fmtp=function(p){return f1(p[0])+' '+f1(p[1]);};
+    g+='<path d="M'+U.map(fmtp).join(' L')+' L'+D.slice().reverse().map(fmtp).join(' L')+' Z" fill="#e6e9eb"/>';
+    g+='<path d="M'+U.map(fmtp).join(' L')+'" fill="none" stroke="#1b1f22" stroke-width="2"/>';
+    g+='<path d="M'+D.map(fmtp).join(' L')+'" fill="none" stroke="#1b1f22" stroke-width="2"/>';
+    for(i=0;i<U.length;i+=2){
+      if(r()>0.12) g+='<circle cx="'+f1(U[i][0]+r()*4)+'" cy="'+f1(U[i][1]-3.8)+'" r="3.7" fill="#1f2428"/>';
+      if(r()>0.12) g+='<circle cx="'+f1(D[i][0]+r()*4)+'" cy="'+f1(D[i][1]+3.8)+'" r="3.7" fill="#1f2428"/>';
+    }
+  });
+  return g;
+}
+function emSVG(k){
+  return {virus:emVirus,bac:emBac,wbc:emWBC,mito:emMito,rer:emRER}[k]();
+}
+
+/* ---------- render ---------- */
+function names(a){return a.map(function(f){return f[0].replace(/ \(.*\)/,'').toLowerCase();}).join(', ');}
+function setRes(k){
+  rkey=k; var d=STR[k];
+  ORDER.forEach(function(v){document.getElementById('r_'+v).setAttribute('aria-pressed',v===k?'true':'false');});
+  document.getElementById('rchart').innerHTML=drawChart(k);
+  document.getElementById('lmdraw').innerHTML=lmSVG(k);
+  document.getElementById('emdraw').innerHTML=emSVG(k);
+  document.getElementById('lmbar').innerHTML=bar(d.lm.bar*300/d.lm.field,d.lm.lab);
+  document.getElementById('embar').innerHTML=bar(d.em.bar*300/d.em.field,d.em.lab);
+  document.getElementById('lmcap').textContent=d.lm.cap;
+  document.getElementById('emcap').textContent=d.em.cap;
+  var seen=d.feats.filter(function(f){return f[1]>=LMRES;}), not=d.feats.filter(function(f){return f[1]<LMRES;});
+  var t=seen.length?('Can be seen: '+names(seen)+'. '):'Nothing can be seen. ';
+  if(not.length) t+='Too small to see (below 200 nm): '+names(not)+'. ';
+  document.getElementById('lmstat').textContent=t+d.lmnote;
+  document.getElementById('emstat').textContent='Every feature is larger than 0.5 nm, so all can be seen. '+d.emnote;
+  document.getElementById('ttitle').textContent=d.label+': can each feature be seen?';
+  document.getElementById('rtable').innerHTML=d.feats.map(function(f){
+    var l=f[1]>=LMRES, e=f[1]>=EMRES;
+    return '<tr><td>'+f[0]+'</td><td>'+fmtNm(f[1])+'</td><td>'+(l?'<span class="yes">✓ Seen</span>':'<span class="no">✗ Not seen</span>')+'</td><td>'+(e?'<span class="yes">✓ Seen</span>':'<span class="no">✗ Not seen</span>')+'</td></tr>';
+  }).join('');
+}
+setRes('virus');
+
+function answerResolution(isCorrect, button){
+  var group=button.parentNode;
+  Array.prototype.forEach.call(group.querySelectorAll('button'),function(b){
+    b.classList.remove('correct','incorrect');
+  });
+  button.classList.add(isCorrect?'correct':'incorrect');
+  document.getElementById('resolutionFeedback').textContent = isCorrect
+    ? 'Correct. 100 nm is smaller than the LM resolution limit of 200 nm, so it cannot be resolved by the LM. The EM can resolve it.'
+    : 'Not quite. 100 nm is smaller than 200 nm, so it is below the LM resolution limit. Choose “No”.';
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
